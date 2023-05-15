@@ -16,9 +16,7 @@ import cPickle
 import json
 
 from GRU_model import GRU_Config, GRU_Model
-from LSTM_model import LSTM_Config, LSTM_Model
 from GRU_attention_model import GRU_attention_Config, GRU_attention_Model
-from LSTM_attention_model import LSTM_attention_Config, LSTM_attention_Model
 from utilities import evaluate_captions, detokenize_caption
 
 def evaluate_best_model(model_type, test_set, vocabulary, train_captions):
@@ -28,17 +26,6 @@ def evaluate_best_model(model_type, test_set, vocabulary, train_captions):
         dummy_embeddings = np.zeros((config.vocab_size, config.embed_dim),
                     dtype=np.float32)
         model = GRU_Model(config, dummy_embeddings, mode="demo")
-    elif model_type == "LSTM":
-        config = LSTM_Config()
-        dummy_embeddings = np.zeros((config.vocab_size, config.embed_dim),
-                    dtype=np.float32)
-        model = LSTM_Model(config, dummy_embeddings, mode="demo")
-    elif model_type == "LSTM_attention":
-        config = LSTM_attention_Config()
-        dummy_embeddings = np.zeros((config.vocab_size, config.embed_dim),
-                    dtype=np.float32)
-        model = LSTM_attention_Model(config, dummy_embeddings, mode="demo")
-    elif model_type == "GRU_attention":
         config = GRU_attention_Config()
         dummy_embeddings = np.zeros((config.vocab_size, config.embed_dim),
                     dtype=np.float32)
@@ -51,10 +38,6 @@ def evaluate_best_model(model_type, test_set, vocabulary, train_captions):
         # restore the best model:
         if model_type == "GRU":
             saver.restore(sess, "models/GRUs/best_model/model")
-        elif model_type == "LSTM":
-            saver.restore(sess, "models/LSTMs/best_model/model")
-        elif model_type == "LSTM_attention":
-            saver.restore(sess, "models/LSTMs_attention/best_model/model")
         elif model_type == "GRU_attention":
             saver.restore(sess, "models/GRUs_attention/best_model/model")
 
@@ -64,12 +47,12 @@ def evaluate_best_model(model_type, test_set, vocabulary, train_captions):
         unique_words = []
         for step, (img_id, img_vector) in enumerate(test_set):
             if step % 100 == 0:
-                print "generating captions on test: %d" % step
+                print ("generating captions on test: %d" % step)
 
             # generate a caption for the img:
-            if model_type in ["LSTM", "GRU"]:
+            if model_type in ["GRU"]:
                 img_caption = model.generate_img_caption(sess, img_vector, vocabulary)
-            elif model_type in ["LSTM_attention", "GRU_attention"]:
+            elif model_type in ["GRU_attention"]:
                 # get the img features from disk:
                 img_features = cPickle.load(
                             open("coco/data/img_features_attention/%d" % img_id))
@@ -133,15 +116,8 @@ def main():
         caption = detokenize_caption(caption, vocabulary)
         train_captions.append(caption)
 
-    # evaluate best LSTM model:
-    LSTM_results_dict = evaluate_best_model("LSTM", test_set, vocabulary,
-               train_captions)
     # evaluate best GRU model:
     GRU_results_dict = evaluate_best_model("GRU", test_set, vocabulary,
-                train_captions)
-    # evaluate best LSTM attention model:
-    LSTM_att_results_dict =\
-                evaluate_best_model("LSTM_attention", test_set, vocabulary,
                 train_captions)
     # evaluate best GRU attention model:
     GRU_att_results_dict =\
@@ -150,13 +126,11 @@ def main():
 
     # put all results in one dict:
     results = {}
-    results["LSTM"] = LSTM_results_dict
-    results["LSTM_attention"] = LSTM_att_results_dict
     results["GRU"] = GRU_results_dict
     results["GRU_attention"] = GRU_att_results_dict
 
     # print all results
-    print results
+    print (results)
 
     # save all results to disk:
     cPickle.dump(results,
