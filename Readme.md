@@ -34,14 +34,11 @@ that can be used to generate high-quality image captions
 
 
 ### Installed packages (all just pip install on linux):
-numpy
-tensorflow
-Cython (for the COCO PythonAPI)
-matplotlib
-scikit-image
-
-Clone the Inception models repo:
-
+1. numpy
+2. tensorflow
+3. Cython (for the COCO PythonAPI)
+4. matplotlib
+6. scikit-image
 
 
 ### How to extract features from the second-to-last layer of the pretrained CNN:
